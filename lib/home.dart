@@ -18,13 +18,14 @@ class _HomeState extends State<Home> {
   @override
   void initState(){
     super.initState();
+    requestExtPermission();
   }
 
   File? imageFile;
   String? _folderPath;
 
 
-  //  Create and Check the local Directory naemd "newDir"
+/*  //  Create and Check the local Directory naemd "newDir"
   void _createLocalFolder() async{
     final directory = await getApplicationDocumentsDirectory();
     final path = Directory('${directory.path}/newDir');
@@ -36,6 +37,36 @@ class _HomeState extends State<Home> {
     setState(() {
       _folderPath = path.path;
     });
+
+  }*/
+
+  // ask external storeage permission
+  void requestExtPermission() async {
+    if(await Permission.manageExternalStorage.request().isGranted){
+      print("External Permisssion GRANTED");_createExternalFolder();
+    } else {
+      print("External Permisssion DENIED");
+    }
+  }
+
+
+  //  Create the external folder
+  void _createExternalFolder() async {
+    final directory = await getExternalStorageDirectory();
+    final path = Directory('${directory?.path}');
+    final newExtFodler = await Directory('${path.parent.parent.parent.parent.path}/extFOLDER');
+
+    if(!await newExtFodler.exists()){
+      await newExtFodler.create();
+      print("Ext folder created successfully ${newExtFodler.path}");
+    } else {
+      print("Ext folder already created in the path ${newExtFodler.path}");
+    }
+
+    setState(() {
+      _folderPath = newExtFodler.path;
+    });
+    _loadImages();
 
   }
 
@@ -83,7 +114,9 @@ class _HomeState extends State<Home> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text("Folder Path: ${_folderPath}"),SizedBox(height: 20,),
-              ElevatedButton(onPressed: _createLocalFolder, child: Text("Create Local Directory")),
+              ElevatedButton(onPressed: requestExtPermission, child: Text("requestExtPermission")),
+              // ElevatedButton(onPressed: _createLocalFolder, child: Text("Create Local Directory")),
+              ElevatedButton(onPressed: _createExternalFolder, child: Text("Create External Directory")),
               imageFile != null ? Image.file(imageFile!) : Text("No image in the Local Dir"),
               SizedBox(height: 20,),
               ElevatedButton(onPressed: choosePic , child: Text("Choose Image")),SizedBox(height: 20,),
